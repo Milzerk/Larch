@@ -1,0 +1,106 @@
+version: "3.7"
+networks:
+  larch-network:
+    driver: bridge
+
+volumes:
+  larch-db:
+    driver: local
+  larch-redis:
+    driver: local
+
+services:
+
+  ## PHP-FPM Container ############
+  php-fpm:
+    build:
+      context: ./
+      dockerfile: ./docker/php-fpm/Dockerfile
+    image: php-fpm
+    container_name: larch-php-fpm
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      - XDEBUG_MODE=coverage
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - larch-network
+
+  ## NGINX Container #############
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: larch-nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - larch-network
+
+  # MySQL Container
+  mysql:
+    image: mysql:8.0
+    container_name: larch-mysql
+    volumes:
+      - larch-db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    networks:
+      - larch-network
+
+  # Redis
+  redis:
+    image: redis:7.0
+    container_name: larch-redis
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - larch-redis:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - larch-network
+
+  # Mailpit
+  mailpit:
+    image: axllent/mailpit:v1.6
+    container_name: larch-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - larch-network
+
+  # # Mailhog
+  # mailhog:
+  #   image: mailhog/mailhog:v1.0.1
+  #   container_name: larch-mailhog
+  #   ports:
+  #     - "1025:1025"
+  #     - "8025:8025"
+  #   networks:
+  #     - larch-network
+
+  # #MeiliSearch
+  # meilisearch:
+  #   image: getmeili/meilisearch
+  #   container_name: larch-meilisearch
+  #   volumes:
+  #     - larch-meilisearch:/data.ms
+  #   environment:
+  #     - MEILI_MASTER_KEY=${MEILISEARCH_KEY}
+  #   ports:
+  #     - "7700:7700"
+  #   networks: 
+  #     - larch-network
+
+
+  # larch-meilisearch:
+  #   driver: local
