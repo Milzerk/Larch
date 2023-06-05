@@ -3,21 +3,28 @@
 namespace Tests\Unit;
 
 use Larch\Actions\SaveUserAction;
-use Larch\Contracts\Models\UserAR;
+use Larch\Contracts\Models\UserModel;
+use Larch\ObjectsValue\Email;
+use Larch\ObjectsValue\Name;
+use Larch\ObjectsValue\Password;
 use PHPUnit\Framework\TestCase;
 
 class SaveUserActionTest extends TestCase
 {
-    
+
     public function test_save_user_with_name_empty(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Name is required');
 
-        $userARMock = $this->createMock(UserAR::class);
-        $userARMock->method('getName')->willReturn('');
+        $userMock = $this->createMock(UserModel::class);
+        $userMock->method('getName')->willReturn(new Name(''));
+        $userMock->method('getEmail')->willReturn(new Email('John@mail.com'));
+        $userMock->method('getPassword')->willReturn(new Password('123456'));
 
-        (new SaveUserAction($userARMock))->execute();
+        $mailMock = $this->createMock(\Larch\Contracts\Mails\WelcomeUserMail::class);
+
+        (new SaveUserAction($userMock, $mailMock))->execute();
     }
 
     public function test_save_user_with_email_empty(): void
@@ -25,11 +32,14 @@ class SaveUserActionTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Email is required');
 
-        $userARMock = $this->createMock(UserAR::class);
-        $userARMock->method('getName')->willReturn('John Doe');
-        $userARMock->method('getEmail')->willReturn('');
+        $userMock = $this->createMock(UserModel::class);
+        $userMock->method('getName')->willReturn(new Name('John Doe'));
+        $userMock->method('getEmail')->willReturn(new Email(''));
+        $userMock->method('getPassword')->willReturn(new Password('123456'));
 
-        (new SaveUserAction($userARMock))->execute();
+        $mailMock = $this->createMock(\Larch\Contracts\Mails\WelcomeUserMail::class);
+
+        (new SaveUserAction($userMock, $mailMock))->execute();
     }
 
     public function test_save_user_with_password_empty(): void
@@ -37,22 +47,25 @@ class SaveUserActionTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Password is required');
 
-        $userARMock = $this->createMock(UserAR::class);
-        $userARMock->method('getName')->willReturn('John Doe');
-        $userARMock->method('getEmail')->willReturn('John@mail.com');
-        $userARMock->method('getPassword')->willReturn('');
+        $userMock = $this->createMock(UserModel::class);
+        $userMock->method('getName')->willReturn(new Name('John Doe'));
+        $userMock->method('getEmail')->willReturn(new Email('John@mail.com'));
+        $userMock->method('getPassword')->willReturn(new Password(''));
 
-        (new SaveUserAction($userARMock))->execute();
-    }
-    
+        $mailMock = $this->createMock(\Larch\Contracts\Mails\WelcomeUserMail::class);
+
+        (new SaveUserAction($userMock, $mailMock))->execute();    }
+
     public function test_save_user_with_success(): void
     {
-        $userARMock = $this->createMock(UserAR::class);
-        $userARMock->method('getName')->willReturn('John Doe');
-        $userARMock->method('getEmail')->willReturn('John@mail.com');
-        $userARMock->method('getPassword')->willReturn('123456');
+        $userMock = $this->createMock(UserModel::class);
+        $userMock->method('getName')->willReturn(new Name('John Doe'));
+        $userMock->method('getEmail')->willReturn(new Email('John@mail.com'));
+        $userMock->method('getPassword')->willReturn(new Password('123456'));
 
-        (new SaveUserAction($userARMock))->execute();
+        $mailMock = $this->createMock(\Larch\Contracts\Mails\WelcomeUserMail::class);
+
+        (new SaveUserAction($userMock, $mailMock))->execute();        
         $this->assertTrue(true);
     }
 }

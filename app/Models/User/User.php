@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\User;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Larch\Contracts\Models\UserAR;
+use Larch\Contracts\Models\UserModel;
 
-class User extends Authenticatable implements UserAR
+class User extends Authenticatable implements UserModel
 {
     use HasApiTokens, HasFactory, Notifiable;
+    use UserTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -43,24 +44,4 @@ class User extends Authenticatable implements UserAR
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function saveUser(): void
-    {
-        $this->save();
-    }
 }

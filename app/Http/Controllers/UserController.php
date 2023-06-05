@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\DispatcherMail\WelcomeUserMailDispatcher;
 use App\Http\Requests\CreateUserRequest;
-use App\Models\User;
+use App\Mail\WelcomeUserMail;
+use App\Models\User\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Larch\Actions\SaveUserAction;
 
 class UserController extends Controller
@@ -14,7 +17,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        return User::all();
     }
 
     /**
@@ -26,12 +29,17 @@ class UserController extends Controller
     }
 
     /**
+     * salva um usuário e dispara um email de boas vindas
      * Store a newly created resource in storage.
      */
     public function store(CreateUserRequest $request)
     {
         $user = new User($request->validated());
-        (new SaveUserAction($user))->execute();
+        $mailDispathcer = new WelcomeUserMailDispatcher();
+
+        (new SaveUserAction($user, $mailDispathcer))->execute();
+
+        return redirect()->route('users.index');
     }
 
     /**
